@@ -24,8 +24,9 @@ from pending_downloads_manager import PendingDownloadsManager
 from youtube_downloader import YouTubeDownloader
 from direct_downloader import DirectDownloader
 import re
+import json
 
-VERSION = "4.0.12"
+VERSION = "4.0.13"
 
 class TelethonDownloaderBot:
     def __init__(self):
@@ -308,12 +309,24 @@ class TelethonDownloaderBot:
 
             self.logger.info(f"message:::: {message}")
 
+            # ACA guardar message en un archivo txt
+            with open(os.path.join(self.env_config.PATH_CONFIG, "message.txt"), "w") as f:
+                f.write(json.dumps(message.to_dict(), indent=4, default=str))
+
             file_extension = self.telethon_utils.get_file_extension(message)
             origin_group = self.telethon_utils.get_origin_group(message)
             channel_id = self.telethon_utils.get_channel_id(message)
             file_info = self.telethon_utils.get_file_info(message, origin_group)
 
             self.logger.info(f"download_media file_info: [{message.id}] {file_info} sender_id: {message.sender_id} origin_group: {origin_group} channel_id: {channel_id}")
+            self.logger.info(f"download_media file_info: [{file_info}]")
+            self.logger.info(f"download_media file_extension: [{file_extension}]")
+            self.logger.info(f"download_media origin_group: [{origin_group}]")
+            self.logger.info(f"download_media channel_id: [{channel_id}]")
+
+            _file_extension = os.path.splitext(file_info)[1].lstrip('.')
+            if not _file_extension:
+                file_info = f"{file_info}.{file_extension}"
 
             if download_type:
                 self.download_type = download_type
