@@ -1,6 +1,7 @@
 import re
 import os
 import shutil
+import hashlib
 from torrent_manager import TorrentManager
 
 class DownloadManager:
@@ -26,6 +27,14 @@ class DownloadManager:
             self._ensure_dir_and_set_permissions(self.temp_incompleted_dir)
         except Exception as e:
             self.logger.error(f"Error during DownloadManager initialization: {e}")
+
+    def _calculate_md5(self, file_path, chunk_size=8192):
+        """Calculates the MD5 hash of a file."""
+        hasher = hashlib.md5()
+        with open(file_path, 'rb') as f:
+            for chunk in iter(lambda: f.read(chunk_size), b''):
+                hasher.update(chunk)
+        return hasher.hexdigest()
 
     def _apply_permissions_and_ownership(self, path):
         try:
@@ -154,10 +163,29 @@ class DownloadManager:
                     self.logger.error(f"Failed to add torrent {downloaded_file_path} via TorrentManager.")
                     return None # Indicate failure to the caller
 
-            self.logger.info(f"move_to_completed downloaded_file_path {downloaded_file_path} .")
-            self.logger.info(f"move_to_completed target_completed_dir {target_completed_dir} .")
-            final_file_path = os.path.join(target_completed_dir, os.path.basename(downloaded_file_path))
-            if os.path.exists(final_file_path): os.remove(final_file_path)
+            self.logger.info(f"move_to_completed downloaded_file_path {downloaded_file_path}")
+            self.logger.info(f"move_to_completed target_completed_dir {target_completed_dir}")
+            
+            original_final_file_path = os.path.join(target_completed_dir, os.path.basename(downloaded_file_path))
+            final_file_path = original_final_file_path
+
+            if os.path.exists(final_file_path):
+                self.logger.info(f"Destination file {final_file_path} already exists. Checking for differences.")
+                downloaded_md5 = self._calculate_md5(downloaded_file_path)
+                existing_md5 = self._calculate_md5(final_file_path)
+
+                if downloaded_md5 == existing_md5:
+                    self.logger.info(f"File {os.path.basename(downloaded_file_path)} is identical to existing file. Replacing.")
+                    os.remove(final_file_path)
+                else:
+                    self.logger.info(f"File {os.path.basename(downloaded_file_path)} is different from existing file. Appending numeric suffix.")
+                    base, ext = os.path.splitext(original_final_file_path)
+                    count = 1
+                    while os.path.exists(final_file_path):
+                        final_file_path = f"{base}_{count}{ext}"
+                        count += 1
+                    self.logger.info(f"New unique file path: {final_file_path}")
+
             shutil.move(downloaded_file_path, final_file_path)
 
             # Set permissions and ownership

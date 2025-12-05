@@ -58,6 +58,8 @@ class TelethonUtils:
                 file_name_attr = next((attr for attr in message.document.attributes if hasattr(attr, 'file_name')), None)
                 file_name = file_name_attr.file_name if file_name_attr else 'unknown_document'
                 file_extension = os.path.splitext(file_name)[1].lstrip('.')
+                if not file_extension:
+                    file_extension = message.document.mime_type.split('/')[-1]
             elif message.photo:
                 file_extension = "jpg"
             return file_extension
@@ -70,9 +72,9 @@ class TelethonUtils:
             file_info = "media"
             if message.document:
                 file_name_attr = next((attr for attr in message.document.attributes if hasattr(attr, 'file_name')), None)
-                file_info = file_name_attr.file_name if file_name_attr else 'unknown_document'
+                file_info = file_name_attr.file_name if file_name_attr and file_name_attr.file_name else str(message.document.id)
             elif message.photo:
-                file_info = f"photo_{message.photo.id}.jpg"
+                file_info = f"photo_{message.photo.id}"
 
             # Apply remove patterns
             remove_patterns = self.config_manager.get_remove_patterns(origin_group)

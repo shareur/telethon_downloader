@@ -310,6 +310,10 @@ services:
 - **Feature:** Unrar Files - Add the capability to unrar files directly from the bot.
 
 
+## [Version 4.0.13] - 2025-12-05
+- **Feature:** Implemented robust file conflict resolution. When a downloaded file has the same name as an existing file, their MD5 hashes are compared. If identical, the existing file is replaced. If different, a numeric suffix is added to the new file's name to ensure uniqueness.
+- **Enhancement:** Improved download summary accuracy by extracting the final filename (including any numeric suffixes) for display and logging.
+
 ## [Version 4.0.12] - 2025-11-28
 - **Update:** Updated `telethon` to version 1.42.0.
 - **Update:** Updated `yt_dlp` to version 2025.11.12.
