@@ -926,6 +926,9 @@ class TelethonDownloaderBot:
 
         self.download_tracker.update_status(message.id, 'completed', final_filename=final_file_path, download_type=self.download_type)
 
+        # Extract filename from final_file_path and update file_info
+        file_info = os.path.basename(final_file_path)
+
         summary = DownloadSummary(message, file_info, final_destination_dir, start_time, end_time, file_size, origin_group, user_id, channel_id, status='completed', download_type=self.download_type)
         summary_text = summary.generate_summary()
 
