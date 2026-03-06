@@ -26,7 +26,7 @@ from direct_downloader import DirectDownloader
 import re
 import json
 
-VERSION = "4.0.13"
+VERSION = "4.0.14"
 
 class TelethonDownloaderBot:
     def __init__(self):
